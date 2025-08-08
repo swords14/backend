@@ -1,0 +1,18 @@
+-- AlterTable
+ALTER TABLE "Event" ADD COLUMN     "eventContactEmail" TEXT,
+ADD COLUMN     "eventContactName" TEXT,
+ADD COLUMN     "eventContactPhone" TEXT,
+ADD COLUMN     "eventTheme" TEXT,
+ADD COLUMN     "eventType" TEXT,
+ADD COLUMN     "localCEP" TEXT,
+ADD COLUMN     "localCidade" TEXT,
+ADD COLUMN     "localEndereco" TEXT,
+ADD COLUMN     "localEstado" TEXT,
+ADD COLUMN     "localNome" TEXT,
+ADD COLUMN     "setupDate" TIMESTAMP(3),
+ADD COLUMN     "setupTimeEnd" TEXT,
+ADD COLUMN     "setupTimeStart" TEXT,
+ADD COLUMN     "specificRequirements" TEXT,
+ADD COLUMN     "teardownDate" TIMESTAMP(3),
+ADD COLUMN     "teardownTimeEnd" TEXT,
+ADD COLUMN     "teardownTimeStart" TEXT;

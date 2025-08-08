@@ -1,0 +1,419 @@
+// Caminho: backend/prisma/schema.prisma
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int                @id @default(autoincrement())
+  email              String             @unique
+  nome               String
+  password           String
+  avatarUrl          String?
+  status             String             @default("Ativo")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  role               Role               @relation(fields: [roleId], references: [id])
+  roleId             Int
+  EventStaff         EventStaff[]
+  auditLogs          AuditLog[]
+  CommunicationLog   CommunicationLog[]
+  DashboardLayouts   DashboardLayout[]
+  twoFactorSecret    String?
+  isTwoFactorEnabled Boolean            @default(false)
+  LayoutTemplate     LayoutTemplate[]
+  tasks              Task[]
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  permissions Permission[]
+  users       User[]
+}
+
+model Permission {
+  id          Int          @id @default(autoincrement())
+  action      String
+  subject     String
+  roles       Role[]
+  @@unique([action, subject])
+}
+
+model Client {
+  id                    Int                @id @default(autoincrement())
+  nome                  String
+  email                 String             @unique
+  cpf                   String?            @unique
+  cnpj                  String?            @unique
+  telefone              String?
+  tipo                  String?
+  status                String?            @default("Lead")
+  endereco              String?
+  cidade                String?
+  estado                String?
+  cep                   String?
+  inscricaoEstadual     String?
+  ramoAtividade         String?
+  origemCliente         String?
+  preferenciasEvento    String?
+  dataAniversario       DateTime?
+  dataFundacaoEmpresa   DateTime?
+  tags                  String[]
+  notas                 String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  contacts              ClientContact[]
+  events                Event[]
+  budgets               Budget[]
+  transactions          Transaction[]
+  communicationLogs     CommunicationLog[]
+  tasks                 Task[]
+  contracts             Contract[] // Adiciona relação inversa para Contratos
+}
+
+model ClientContact {
+  id          Int      @id @default(autoincrement())
+  nome        String
+  cargo       String?
+  email       String?
+  telefone    String?
+  isPrincipal Boolean  @default(false)
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    Int
+}
+
+model CommunicationLog {
+  id        Int      @id @default(autoincrement())
+  type      String
+  subject   String
+  notes     String
+  createdAt DateTime @default(now())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model Event {
+  id                   String        @id @default(uuid())
+  title                String
+  startDate            DateTime
+  endDate              DateTime?
+  convidados           Int
+  valorTotal           Float
+  status               String
+  observacoes          String?
+  createdAt            DateTime      @default(now())
+  client               Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId             Int
+  staff                EventStaff[]
+  eventTasks           EventTask[]
+  transactions         Transaction[]
+  feedbacks            Feedback[]
+  eventItems           EventItem[]
+  eventType            String?
+  eventTheme           String?
+  localNome            String?
+  localEndereco        String?
+  localCidade          String?
+  localEstado          String?
+  localCEP             String?
+  setupDate            DateTime?
+  setupTimeStart       String?
+  setupTimeEnd         String?
+  teardownDate         DateTime?
+  teardownTimeStart    String?
+  teardownTimeEnd      String?
+  specificRequirements String?
+  eventContactName     String?
+  eventContactPhone    String?
+  eventContactEmail    String?
+  tasks                Task[]
+  contract             Contract? // Adiciona relação inversa para Contrato
+}
+
+model Budget {
+  id                     String     @id @default(uuid())
+  eventName              String?
+  eventDate              DateTime?
+  convidados             Int?
+  status                 String
+  validade               DateTime
+  valorTotal             Float
+  desconto               Float?     @default(0)
+  taxaServico            Float?     @default(10)
+  observacoes            String?
+  createdAt              DateTime   @default(now())
+  client                 Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId               Int
+  items                  BudgetItem[]
+  codigoOrcamento        String?    @unique
+  versao                 String?    @default("1.0")
+  dataEnvio              DateTime?
+  localEventoNome        String?
+  localEventoEndereco    String?
+  localEventoCidade      String?
+  localEventoEstado      String?
+  localEventoCEP         String?
+  horarioInicio          String?
+  horarioFim             String?
+  tipoCozinha            String?
+  restricoesAlimentares  String?
+  condicoesPagamento     String?
+  observacoesFinanceiras String?
+  contract               Contract? // Adiciona relação inversa para Contrato
+}
+
+model BudgetItem {
+  id            Int     @id @default(autoincrement())
+  descricao     String
+  quantidade    Float
+  valorUnitario Float
+  unidade       String?
+  budget        Budget  @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budgetId      String
+}
+
+model Service {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  valor     Float
+  unidade   String
+  createdAt DateTime @default(now())
+}
+
+model Contract {
+  id              String    @id @default(uuid())
+  codigoContrato  String    @unique
+  status          String    // Ex: "Aguardando Assinatura", "Assinado", "Finalizado", "Cancelado"
+  valor           Float
+  dataEmissao     DateTime  @default(now())
+  dataAssinatura  DateTime?
+  arquivoUrl      String?   // Para guardar o PDF do contrato assinado
+  observacoes     String?
+  conteudo        String?   @db.Text // NOVO CAMPO: Conteúdo do contrato em texto livre
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // --- Conexões Chave ---
+  client          Client    @relation(fields: [clientId], references: [id])
+  clientId        Int
+  
+  budget          Budget    @relation(fields: [budgetId], references: [id])
+  budgetId        String    @unique // Um orçamento só pode gerar um contrato
+
+  event           Event?    @relation(fields: [eventId], references: [id])
+  eventId         String?   @unique // Um contrato só pode gerar um evento
+}
+
+model Transaction {
+  id              String    @id @default(uuid())
+  descricao       String
+  valor           Float
+  tipo            String
+  data            DateTime
+  status          String
+  metodoPagamento String
+  categoria       String?
+  dataVencimento  DateTime?
+  client          Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId        Int?
+  supplier        Supplier? @relation(fields: [supplierId], references: [id])
+  supplierId      Int?
+  event           Event?    @relation(fields: [eventId], references: [id])
+  eventId         String?
+  observacoes     String?
+  linkComprovante String?
+  numeroDocumento String?
+}
+
+model Supplier {
+  id                  Int           @id @default(autoincrement())
+  nome                String
+  categoria           String
+  contato             String?
+  cargoContato        String?
+  telefone            String?
+  telefoneAlternativo String?
+  email               String?
+  emailAlternativo    String?
+  cnpj                String?       @unique
+  inscricaoEstadual   String?
+  endereco            String?
+  cidade              String?
+  estado              String?
+  cep                 String?
+  termosPagamento     String?
+  banco               String?
+  agencia             String?
+  conta               String?
+  chavePix            String?
+  servicosOferecidos  String[]
+  dataUltimoContato   DateTime?
+  rating              Int           @default(0)
+  status              String        @default("Ativo")
+  notas               String?
+  transactions        Transaction[]
+  inventoryItems      InventoryItem[]
+}
+
+model InventoryItem {
+  id            Int                 @id @default(autoincrement())
+  nome          String              @unique
+  sku           String?             @unique
+  description   String?
+  categoria     String
+  imageUrl      String?
+  quantidade    Int
+  estoqueMinimo Int
+  valorUnitario Float
+  supplier      Supplier?           @relation(fields: [supplierId], references: [id])
+  supplierId    Int?
+  movements     InventoryMovement[]
+  eventItems    EventItem[]
+}
+
+model InventoryMovement {
+  id         Int           @id @default(autoincrement())
+  tipo       String
+  quantidade Int
+  obs        String?
+  createdAt  DateTime      @default(now())
+  item       InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId     Int
+}
+
+model EventTask {
+  id        Int      @id @default(autoincrement())
+  descricao String
+  concluida Boolean  @default(false)
+  dueDate   DateTime?
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId   String
+}
+
+model EventStaff {
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  Int
+  @@id([eventId, userId])
+}
+
+model Feedback {
+  id                 String  @id @default(uuid())
+  notasJson          String
+  sugestao           String?
+  autorizaDepoimento Boolean @default(false)
+  event              Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId            String  @unique
+}
+
+model EventItem {
+  id                  Int           @id @default(autoincrement())
+  quantidadeReservada Int
+  event               Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId             String
+  inventoryItem       InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  inventoryItemId     Int
+  @@unique([eventId, inventoryItemId])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  entityType String
+  entityId   String
+  details    Json?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+}
+
+model Company {
+  id               Int      @id @default(1)
+  nomeFantasia     String?
+  razaoSocial      String?
+  cnpj             String?   @unique
+  endereco         String?
+  cidade           String?
+  estado           String?
+  cep              String?
+  telefone         String?
+  email            String?
+  logoUrl          String?
+  banco            String?
+  agencia          String?
+  conta            String?
+  chavePix         String?
+  regimeTributario String?
+  updatedAt        DateTime @updatedAt
+}
+
+model DocumentTemplate {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  tipo      String
+  conteudo  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DashboardLayout {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  layout    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LayoutTemplate {
+  id         String   @id @default(uuid())
+  name       String
+  layoutJson String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  author     User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId   Int?
+}
+
+model Task {
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String?
+  status       String    @default("Pendente")
+  priority     String    @default("Normal")
+  dueDate      DateTime?
+  tags         String[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assignedTo   User      @relation(fields: [assignedToId], references: [id])
+  assignedToId Int
+
+  client       Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientId     Int?
+  event        Event?    @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  eventId      String?
+  subTasks     SubTask[]
+}
+
+model SubTask {
+  id     Int     @id @default(autoincrement())
+  text   String
+  isDone Boolean @default(false)
+  task   Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId Int
+}
