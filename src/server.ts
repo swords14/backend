@@ -36,8 +36,20 @@ import funnelRoutes from './routes/funnel.routes';
 const app = express();
 const PORT = process.env.PORT || 3333;
 
-// Middlewares
-app.use(cors());
+// --- Middlewares ---
+
+// CONFIGURAÇÃO DE CORS (AQUI ESTÁ A MUDANÇA)
+// Substituímos o app.use(cors()) por esta configuração mais segura
+const corsOptions = {
+  // A URL do seu frontend na Vercel, obtida do erro anterior
+  origin: 'https://frontend-erclat-pvhr6j6ge-swords14s-projects.vercel.app', 
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+// --- FIM DA CONFIGURAÇÃO DE CORS ---
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
