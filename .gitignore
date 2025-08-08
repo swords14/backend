@@ -3,4 +3,8 @@ node_modules
 .env
 
 /src/generated/prisma
+<<<<<<< HEAD
 /dist
+=======
+/dist
+>>>>>>> faf8fc63eb1322582a266eeb4197b061003a889f
