@@ -37,20 +37,23 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configuração de CORS (ANTES DE QUALQUER ROTA)
+// Configuração de CORS
 const corsOptions = {
   origin: 'https://frontend-erclat.vercel.app', // seu frontend na Vercel
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
 };
 app.use(cors(corsOptions));
 
-// Garantir que todos os preflight recebam resposta
+// Garantir que todos os preflight recebam resposta adequada
 app.options('*', cors(corsOptions));
 
+// Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Servir uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Rotas da API
@@ -78,7 +81,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
 app.use('/api', layoutRoutes);
 
-// Rota de teste
+// Rota de teste simples para verificar CORS
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Deploy de depuração de CORS está a funcionar!', version: 'cors-debug' });
 });

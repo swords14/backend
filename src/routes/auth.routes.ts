@@ -10,6 +10,7 @@ import {
 } from '../controllers/auth.controller'; // <-- ESTA É A CORREÇÃO
 import { protect } from '../middleware/auth.middleware';
 
+
 const router = Router();
 
 router.post('/register', registerUser);
