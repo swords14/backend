@@ -36,13 +36,16 @@ const PORT = process.env.PORT || 3333;
 
 // --- Middlewares ---
 
+// CONFIGURAÇÃO DE CORS ATUALIZADA E COM TIPOS
 const allowedOrigins = [
-  'https://frontend-erclat.vercel.app',
-  'https://frontend-erclat-git-main-swords14s-projects.vercel.app'
+  'https://frontend-erclat.vercel.app', // Sua URL de produção principal
+  'https://frontend-erclat-git-main-swords14s-projects.vercel.app', // A URL de preview do branch main
+  'https://frontend-erclat-pj9piibua-swords14s-projects.vercel.app' // Nova URL de preview do último erro
 ];
 
 const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Permite requisições se a origem estiver na lista de permitidas ou se não houver origem (ex: Postman)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -53,6 +56,8 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
+// --- FIM DA CONFIGURAÇÃO DE CORS ---
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
