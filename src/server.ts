@@ -3,7 +3,7 @@
 import 'dotenv/config';
 
 import express from 'express';
-import cors, { CorsOptions } from 'cors'; // Importe também o "CorsOptions"
+import cors, { CorsOptions } from 'cors';
 import path from 'path';
 
 // Importação de todas as suas rotas
@@ -42,7 +42,7 @@ const allowedOrigins = [
   'https://frontend-erclat-git-main-swords14s-projects.vercel.app' // A URL de preview do branch main
 ];
 
-const corsOptions: CorsOptions = { // Adicionamos o tipo aqui
+const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Permite requisições se a origem estiver na lista de permitidas ou se não houver origem (ex: Postman)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
@@ -85,6 +85,11 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
+
+// ROTA DE TESTE PARA VERIFICAR A VERSÃO DO DEPLOY
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Deploy de CORS atualizado está funcionando!', version: '2.0' });
+});
 
 // Inicia o servidor
 app.listen(PORT, () => {
