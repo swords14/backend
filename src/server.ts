@@ -28,8 +28,6 @@ import segurancaRoutes from './routes/seguranca.routes';
 import { layoutRoutes } from './routes/layout.routes';
 import taskRoutes from './routes/task.routes';
 import contractRoutes from './routes/contract.routes';
-
-// --- IMPORTAÇÃO DO ROTEADOR DE FEEDBACK ---
 import feedbackRoutes from './routes/feedback.routes';
 import funnelRoutes from './routes/funnel.routes';
 
@@ -38,17 +36,26 @@ const PORT = process.env.PORT || 3333;
 
 // --- Middlewares ---
 
-// CONFIGURAÇÃO DE CORS (AQUI ESTÁ A MUDANÇA)
-// Substituímos o app.use(cors()) por esta configuração mais segura
+// CONFIGURAÇÃO DE CORS ATUALIZADA
+const allowedOrigins = [
+  'https://frontend-erclat.vercel.app', // Sua URL de produção principal
+  'https://frontend-erclat-git-main-swords14s-projects.vercel.app' // A URL de preview do branch main
+];
+
 const corsOptions = {
-  // A URL do seu frontend na Vercel, obtida do erro anterior
-  origin: 'https://frontend-erclat-pvhr6j6ge-swords14s-projects.vercel.app', 
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    // Permite requisições se a origem estiver na lista de permitidas
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Acesso negado pela política de CORS'));
+    }
+  },
   optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
 // --- FIM DA CONFIGURAÇÃO DE CORS ---
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -78,7 +85,6 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
-
 
 // Inicia o servidor
 app.listen(PORT, () => {
