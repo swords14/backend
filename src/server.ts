@@ -36,23 +36,32 @@ const PORT = process.env.PORT || 3333;
 
 // --- Middlewares ---
 
-// CONFIGURAÇÃO DE CORS ATUALIZADA E COM TIPOS
-const allowedOrigins = [
-  'https://frontend-erclat.vercel.app', // Sua URL de produção principal
-  'https://frontend-erclat-git-main-swords14s-projects.vercel.app', // A URL de preview do branch main
-  'https://frontend-erclat-pj9piibua-swords14s-projects.vercel.app' // Nova URL de preview do último erro
-];
-
+// --- CONFIGURAÇÃO DE CORS CORRIGIDA E ROBUSTA ---
 const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Permite requisições se a origem estiver na lista de permitidas ou se não houver origem (ex: Postman)
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    // Padrões de URL permitidos usando Expressões Regulares (RegExp)
+    const allowedOriginPatterns = [
+      /^https:\/\/frontend-erclat\.vercel\.app$/, // Domínio principal de produção
+      /^https:\/\/frontend-erclat-.*\.vercel\.app$/ // Padrão para todos os previews da Vercel
+    ];
+
+    // Adiciona http://localhost:<qualquer-porta> para desenvolvimento local
+    if (process.env.NODE_ENV !== 'production') {
+        allowedOriginPatterns.push(/^http:\/\/localhost:\d+$/);
+    }
+
+    // Permite requisições se a origem corresponder a um dos padrões
+    // ou se não houver origem (ex: Postman, apps mobile)
+    if (!origin || allowedOriginPatterns.some(pattern => pattern.test(origin))) {
       callback(null, true);
     } else {
+      // Rejeita a requisição se a origem não for permitida
       callback(new Error('Acesso negado pela política de CORS'));
     }
   },
-  optionsSuccessStatus: 200
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Garante que todos os métodos HTTP são permitidos
+  credentials: true, // Permite o envio de cookies, se necessário
+  optionsSuccessStatus: 200 // Para navegadores legados
 };
 
 app.use(cors(corsOptions));
@@ -62,7 +71,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Rotas da API (ORDEM CORRIGIDA)
+// Rotas da API
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/events', eventRoutes);
@@ -85,13 +94,11 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
-
-// A rota genérica foi movida para o final
 app.use('/api', layoutRoutes); 
 
 // ROTA DE TESTE PARA VERIFICAR A VERSÃO DO DEPLOY
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Deploy de CORS atualizado está funcionando!', version: '2.0' });
+  res.json({ message: 'Deploy de CORS atualizado (v3 - RegExp) está funcionando!', version: '3.0' });
 });
 
 // Inicia o servidor
