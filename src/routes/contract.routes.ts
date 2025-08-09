@@ -9,7 +9,7 @@ import {
     updateContractStatus,
     deleteContract,
     updateContract // NOVO: Importa o novo controlador
-} from '../routes/controllers/contract.controller';
+} from '../controllers/contract.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

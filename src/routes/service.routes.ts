@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllServices } from '../routes/controllers/service.controller';
+import { getAllServices } from '../controllers/service.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = express.Router();

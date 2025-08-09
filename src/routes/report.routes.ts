@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getReportData } from '../routes/controllers/report.controller';
+import { getReportData } from '../controllers/report.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllRoles, createRole, updateRole } from '../routes/controllers/role.controller';
+import { getAllRoles, createRole, updateRole } from '../controllers/role.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 
 const router = express.Router();

@@ -7,7 +7,7 @@ import {
     getTaskById,
     updateTask,
     deleteTask
-} from '../routes/controllers/task.controller';
+} from '../controllers/task.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

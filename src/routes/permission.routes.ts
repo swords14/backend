@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllPermissions } from '../routes/controllers/permission.controller';
+import { getAllPermissions } from '../controllers/permission.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 
 const router = express.Router();

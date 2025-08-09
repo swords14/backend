@@ -6,7 +6,7 @@ import {
     createFeedbackRecord,
     getFeedbackById,
     submitFeedback 
-} from '../routes/controllers/feedback.controller';
+} from '../controllers/feedback.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

@@ -7,7 +7,7 @@ import {
   enableTwoFactorAuth,
   disableTwoFactorAuth,
   getActivityLog
-} from '../routes/controllers/seguranca.controller';
+} from '../controllers/seguranca.controller';
 
 const router = Router();
 

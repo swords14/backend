@@ -7,7 +7,7 @@ import {
   createClient,
   updateClient,
   deleteClient
-} from '../routes/controllers/client.controller';
+} from '../controllers/client.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

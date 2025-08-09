@@ -2,7 +2,7 @@
 import { Router } from 'express';
 // Ajuste o caminho de importação do controller conforme a sua estrutura real
 // Ex: Se calendar.controller.ts estiver em src/controllers/
-import { getCalendarEvents, getFutureEventItemReservations } from '../routes/controllers/calendar.controler';
+import { getCalendarEvents, getFutureEventItemReservations } from '../controllers/calendar.controler';
 // Ou se estiver em src/routes/controllers/ (menos comum)
 // import { getCalendarEvents, getFutureEventItemReservations } from './controllers/calendar.controller';
 

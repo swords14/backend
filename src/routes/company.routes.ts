@@ -2,7 +2,7 @@
 
 import express from 'express';
 // CORREÇÃO NO CAMINHO: O controller está em '../controllers', não em '../routes/controllers'
-import { getCompanyData, updateCompanyData } from '../routes/controllers/company.controller';
+import { getCompanyData, updateCompanyData } from '../controllers/company.controller';
 // 1. IMPORTE A FUNÇÃO 'authorize'
 import { protect, authorize } from '../middleware/auth.middleware';
 

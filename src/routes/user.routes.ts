@@ -8,7 +8,7 @@ import {
   createUser, // Mudou de inviteUser para createUser
   updateUser, // Nova rota
   deleteUser
-} from '../routes/controllers/user.controller';
+} from '../controllers/user.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 
 const router = express.Router();

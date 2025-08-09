@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { 
     getSuppliers, createSupplier, updateSupplier, deleteSupplier, getSupplierCategories 
-} from '../routes/controllers/supplier.controller'; 
+} from '../controllers/supplier.controller'; 
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

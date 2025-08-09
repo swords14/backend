@@ -11,7 +11,7 @@ import {
   addInventoryMovement,
   getAllInventoryItemsForBudget,
   getInventoryCategories
-} from '../routes/controllers/inventory.controller';
+} from '../controllers/inventory.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

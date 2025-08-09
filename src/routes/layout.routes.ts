@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { LayoutController } from '../routes/controllers/LayoutController';
+import { LayoutController } from '../controllers/LayoutController';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

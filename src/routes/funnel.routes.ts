@@ -1,8 +1,8 @@
 // Caminho: backend/src/routes/funnel.routes.ts
 
 import { Router } from 'express';
-import { getFunnelData } from '../routes/controllers/funnel.controller';
-import { updateBudgetStatus } from '../routes/controllers/budget.controller';
+import { getFunnelData } from '../controllers/funnel.controller';
+import { updateBudgetStatus } from '../controllers/budget.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

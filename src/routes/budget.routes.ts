@@ -1,7 +1,7 @@
 // Caminho do arquivo: backend/src/routes/budget.routes.ts
 import { Router } from 'express';
 import { protect } from '../middleware/auth.middleware';
-import { getBudgets, createBudget, getBudgetById, updateBudget, deleteBudget, updateBudgetStatus } from '../routes/controllers/budget.controller';
+import { getBudgets, createBudget, getBudgetById, updateBudget, deleteBudget, updateBudgetStatus } from '../controllers/budget.controller';
 
 const router = Router();
 

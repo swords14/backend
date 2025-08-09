@@ -9,7 +9,7 @@ import {
     updateEvent,
     createEventFromBudget, // <-- Adicionado para importar a função de criação a partir do orçamento
     finalizeEvent // <-- Adicionado para importar a nova função de finalizar evento
-    } from '../routes/controllers/event.controller'; // Verifique se o caminho está correto: '../controllers/' ou './controllers/'
+    } from '../controllers/event.controller'; // Verifique se o caminho está correto: '../controllers/' ou './controllers/'
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

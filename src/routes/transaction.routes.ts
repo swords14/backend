@@ -7,7 +7,7 @@ import {
     updateTransactionStatus,
     deleteTransaction,
     getTransactionCategories
-} from '../routes/controllers/transaction.controller';
+} from '../controllers/transaction.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();

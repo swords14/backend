@@ -1,7 +1,7 @@
 // Caminho: backend/src/routes/dashboard.routes.ts
 
 import { Router } from 'express';
-import { getDashboardData, saveUserDashboardLayout } from '../routes/controllers/dashboard.controller';
+import { getDashboardData, saveUserDashboardLayout } from '../controllers/dashboard.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = Router();
