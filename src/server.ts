@@ -36,15 +36,13 @@ const PORT = process.env.PORT || 3333;
 
 // --- Middlewares ---
 
-// CONFIGURAÇÃO DE CORS ATUALIZADA E COM TIPOS
 const allowedOrigins = [
-  'https://frontend-erclat.vercel.app', // Sua URL de produção principal
-  'https://frontend-erclat-git-main-swords14s-projects.vercel.app' // A URL de preview do branch main
+  'https://frontend-erclat.vercel.app',
+  'https://frontend-erclat-git-main-swords14s-projects.vercel.app'
 ];
 
 const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Permite requisições se a origem estiver na lista de permitidas ou se não houver origem (ex: Postman)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -55,13 +53,11 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-// --- FIM DA CONFIGURAÇÃO DE CORS ---
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Rotas da API
+// Rotas da API (ORDEM CORRIGIDA)
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/events', eventRoutes);
@@ -80,11 +76,13 @@ app.use('/api/templates', documentTemplateRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/seguranca', segurancaRoutes);
-app.use('/api', layoutRoutes); 
 app.use('/api/tasks', taskRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
+
+// A rota genérica foi movida para o final
+app.use('/api', layoutRoutes); 
 
 // ROTA DE TESTE PARA VERIFICAR A VERSÃO DO DEPLOY
 app.get('/api/test', (req, res) => {
