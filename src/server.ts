@@ -1,12 +1,9 @@
-// Caminho: backend/src/server.ts
-
 import 'dotenv/config';
-
 import express from 'express';
-import cors, { CorsOptions } from 'cors';
+import cors from 'cors';
 import path from 'path';
 
-// Importação de todas as suas rotas
+// Rotas
 import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/client.routes';
 import eventRoutes from './routes/event.routes';
@@ -34,29 +31,27 @@ import funnelRoutes from './routes/funnel.routes';
 const app = express();
 const PORT = process.env.PORT || 3333;
 
-// --- Middlewares ---
-
-// Middleware de Log para Depuração - DEVE SER O PRIMEIRO
-// Para vermos nos logs do Render se os pedidos estão a chegar.
+// Middleware de log (debug)
 app.use((req, res, next) => {
   console.log(`--> Pedido Recebido: ${req.method} ${req.url} da origem ${req.headers.origin}`);
   next();
 });
 
-
-// --- CONFIGURAÇÃO DE CORS PARA DEPURAÇÃO ---
-// Simplificado ao máximo para testar se o problema está na configuração complexa.
-// Se isto funcionar, o problema estava na lógica da função 'origin' anterior.
-console.log('A APLICAR CONFIGURAÇÃO DE CORS SIMPLIFICADA (PERMITIR TUDO)...');
-app.use(cors());
-// --- FIM DA CONFIGURAÇÃO DE CORS ---
-
+// Configuração de CORS
+const corsOptions = {
+  origin: 'https://frontend-erclat.vercel.app', // frontend na vercel
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // resposta ao preflight
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// --- Rotas da API (ORDEM CORRIGIDA) ---
+// Rotas da API
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/events', eventRoutes);
@@ -79,14 +74,13 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
-app.use('/api', layoutRoutes); 
+app.use('/api', layoutRoutes);
 
-// ROTA DE TESTE PARA VERIFICAR A VERSÃO DO DEPLOY
+// Rota de teste
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Deploy de depuração de CORS está a funcionar!', version: 'cors-debug' });
 });
 
-// Inicia o servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor a rodar na porta ${PORT}`);
 });
