@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 
-// Rotas
+// Importar rotas
 import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/client.routes';
 import eventRoutes from './routes/event.routes';
@@ -31,29 +31,36 @@ import funnelRoutes from './routes/funnel.routes';
 const app = express();
 const PORT = process.env.PORT || 3333;
 
-// Middleware de log (debug)
+// Middleware de log para debug
 app.use((req, res, next) => {
   console.log(`--> Pedido Recebido: ${req.method} ${req.url} da origem ${req.headers.origin}`);
   next();
 });
 
-// Configuração de CORS
+// Configuração CORS
 const corsOptions = {
   origin: 'https://frontend-erclat.vercel.app', // seu frontend na Vercel
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  credentials: true
 };
+
 app.use(cors(corsOptions));
 
-// Garantir que todos os preflight recebam resposta adequada
+// Middleware para responder sempre OPTIONS com status 200
 app.options('*', cors(corsOptions));
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-// Body parser
+// Middleware para parse JSON e urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir uploads
+// Rota para arquivos estáticos (uploads)
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Rotas da API
@@ -81,11 +88,12 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
 app.use('/api', layoutRoutes);
 
-// Rota de teste simples para verificar CORS
+// Rota teste para verificar CORS e deploy
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Deploy de depuração de CORS está a funcionar!', version: 'cors-debug' });
 });
 
+// Inicia servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor a rodar na porta ${PORT}`);
 });
