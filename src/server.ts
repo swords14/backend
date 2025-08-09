@@ -36,33 +36,27 @@ const PORT = process.env.PORT || 3333;
 
 // --- Middlewares ---
 
-const corsOptions: CorsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    const allowedOriginPatterns = [
-      /^https:\/\/frontend-erclat\.vercel\.app$/,
-      /^https:\/\/frontend-erclat-.*\.vercel\.app$/,
-    ];
-    if (process.env.NODE_ENV !== 'production') {
-        allowedOriginPatterns.push(/^http:\/\/localhost:\d+$/);
-    }
-    if (!origin || allowedOriginPatterns.some(pattern => pattern.test(origin))) {
-      callback(null, true);
-    } else {
-      callback(new Error('Acesso negado pela política de CORS'));
-    }
-  },
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true,
-  optionsSuccessStatus: 200
-};
+// Middleware de Log para Depuração - DEVE SER O PRIMEIRO
+// Para vermos nos logs do Render se os pedidos estão a chegar.
+app.use((req, res, next) => {
+  console.log(`--> Pedido Recebido: ${req.method} ${req.url} da origem ${req.headers.origin}`);
+  next();
+});
 
-app.use(cors(corsOptions));
+
+// --- CONFIGURAÇÃO DE CORS PARA DEPURAÇÃO ---
+// Simplificado ao máximo para testar se o problema está na configuração complexa.
+// Se isto funcionar, o problema estava na lógica da função 'origin' anterior.
+console.log('A APLICAR CONFIGURAÇÃO DE CORS SIMPLIFICADA (PERMITIR TUDO)...');
+app.use(cors());
+// --- FIM DA CONFIGURAÇÃO DE CORS ---
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // --- Rotas da API (ORDEM CORRIGIDA) ---
-// As rotas mais específicas vêm primeiro
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/events', eventRoutes);
@@ -85,13 +79,11 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
-
-// A rota mais genérica '/api' foi movida para o FINAL do bloco de rotas.
 app.use('/api', layoutRoutes); 
 
 // ROTA DE TESTE PARA VERIFICAR A VERSÃO DO DEPLOY
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Deploy final está a funcionar!', version: 'final' });
+  res.json({ message: 'Deploy de depuração de CORS está a funcionar!', version: 'cors-debug' });
 });
 
 // Inicia o servidor
