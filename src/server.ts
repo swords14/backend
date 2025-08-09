@@ -3,7 +3,7 @@
 import 'dotenv/config';
 
 import express from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors'; // Importe também o "CorsOptions"
 import path from 'path';
 
 // Importação de todas as suas rotas
@@ -36,15 +36,15 @@ const PORT = process.env.PORT || 3333;
 
 // --- Middlewares ---
 
-// CONFIGURAÇÃO DE CORS ATUALIZADA
+// CONFIGURAÇÃO DE CORS ATUALIZADA E COM TIPOS
 const allowedOrigins = [
   'https://frontend-erclat.vercel.app', // Sua URL de produção principal
   'https://frontend-erclat-git-main-swords14s-projects.vercel.app' // A URL de preview do branch main
 ];
 
-const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    // Permite requisições se a origem estiver na lista de permitidas
+const corsOptions: CorsOptions = { // Adicionamos o tipo aqui
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Permite requisições se a origem estiver na lista de permitidas ou se não houver origem (ex: Postman)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
