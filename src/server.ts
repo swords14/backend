@@ -1,9 +1,12 @@
+// Caminho: backend/src/server.ts
+
 import 'dotenv/config';
+
 import express from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import path from 'path';
 
-// Importar rotas
+// Importação de todas as suas rotas
 import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/client.routes';
 import eventRoutes from './routes/event.routes';
@@ -31,39 +34,37 @@ import funnelRoutes from './routes/funnel.routes';
 const app = express();
 const PORT = process.env.PORT || 3333;
 
-// Middleware de log para debug
-app.use((req, res, next) => {
-  console.log(`--> Pedido Recebido: ${req.method} ${req.url} da origem ${req.headers.origin}`);
-  next();
-});
+// --- Middlewares ---
 
-// Configuração CORS
-const corsOptions = {
-  origin: 'https://frontend-erclat.vercel.app', // seu frontend na Vercel
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+// Configuração de CORS Segura e Pronta para Produção
+const corsOptions: CorsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    const allowedOriginPatterns = [
+      /^https:\/\/frontend-erclat\.vercel\.app$/,
+      /^https:\/\/frontend-erclat-.*\.vercel\.app$/
+    ];
+
+    if (process.env.NODE_ENV !== 'production') {
+        allowedOriginPatterns.push(/^http:\/\/localhost:\d+$/);
+    }
+
+    if (!origin || allowedOriginPatterns.some(pattern => pattern.test(origin))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Acesso negado pela política de CORS'));
+    }
+  },
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
-
-// Middleware para responder sempre OPTIONS com status 200
-app.options('*', cors(corsOptions));
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// Middleware para parse JSON e urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Rota para arquivos estáticos (uploads)
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Rotas da API
+// --- Rotas da API ---
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/events', eventRoutes);
@@ -86,14 +87,9 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/funnel', funnelRoutes);
-app.use('/api', layoutRoutes);
+app.use('/api', layoutRoutes); 
 
-// Rota teste para verificar CORS e deploy
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Deploy de depuração de CORS está a funcionar!', version: 'cors-debug' });
-});
-
-// Inicia servidor
+// Inicia o servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor a rodar na porta ${PORT}`);
 });
