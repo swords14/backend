@@ -1,6 +1,6 @@
 // src/types/express/index.d.ts
 
-// Sem o 'declare global', pois o arquivo já é global.
+// Extensão do tipo Request do Express para incluir informações do usuário autenticado
 namespace Express {
   export interface Request {
     user?: {

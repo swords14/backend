@@ -1,28 +1,34 @@
-// Ficheiro: backend/src/controllers/auth.controller.ts
-
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { authenticator } from 'otplib';
-import { createAuditLog } from '../controllers/audit.service';
+import { createAuditLog } from './audit.service';
 
 const prisma = new PrismaClient();
 
-// --- VALIDAÇÃO DE SEGURANÇA ---
-// Garante que a variável de ambiente essencial existe.
+// ===============================
+// 🔐 Validação de segurança
+// ===============================
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-    console.error("### ERRO CRÍTICO: A variável de ambiente JWT_SECRET não está definida. ###");
-    console.error("### Por favor, adicione JWT_SECRET ao seu ficheiro .env e reinicie o servidor. ###");
-    process.exit(1); // Impede o servidor de continuar a funcionar de forma insegura.
+  console.error('JWT_SECRET não definido no .env');
+  process.exit(1);
 }
 
-// Função para registrar um novo utilizador
+// ===============================
+// 👤 Registrar usuário
+// ===============================
 export const registerUser = async (req: Request, res: Response) => {
   const { nome, email, password, roleId } = req.body;
+
+  if (!nome || !email || !password) {
+    return res.status(400).json({ message: 'Dados obrigatórios ausentes.' });
+  }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await prisma.user.create({
       data: {
         nome,
@@ -30,32 +36,41 @@ export const registerUser = async (req: Request, res: Response) => {
         password: hashedPassword,
         roleId: roleId || 2,
       },
-      select: { id: true, nome: true, email: true, role: { select: { name: true } } }
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        role: { select: { name: true } },
+      },
     });
-    
+
     await createAuditLog({
-        userId: user.id,
-        action: 'USER_REGISTERED',
-        entityType: 'User',
-        entityId: user.id,
-        details: { ip: req.ip }
+      userId: user.id,
+      action: 'USER_REGISTERED',
+      entityType: 'User',
+      entityId: user.id,
+      details: { ip: req.ip },
     });
 
     res.status(201).json(user);
-  } catch (error) {
-    console.error("Erro ao registrar utilizador:", error);
-    if (error instanceof Error && (error as any).code === 'P2002') { 
+  } catch (error: any) {
+    console.error(error);
+
+    if (error.code === 'P2002') {
       return res.status(400).json({ message: 'Email já cadastrado.' });
     }
+
     res.status(500).json({ message: 'Erro ao registrar utilizador.' });
   }
 };
 
-// Função para login de utilizador
+// ===============================
+// 🔑 Login
+// ===============================
 export const loginUser = async (req: Request, res: Response) => {
-  const { email, senha } = req.body;
+  const { email, password } = req.body;
 
-  if (!email || !senha) {
+  if (!email || !password) {
     return res.status(400).json({ message: 'Email e senha são obrigatórios.' });
   }
 
@@ -69,23 +84,31 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Email ou senha inválidos.' });
     }
 
-    const isPasswordCorrect = await bcrypt.compare(senha, user.password);
+    const isValidPassword = await bcrypt.compare(password, user.password);
 
-    if (!isPasswordCorrect) {
+    if (!isValidPassword) {
       await createAuditLog({
-          userId: user.id,
-          action: 'LOGIN_FAILURE',
-          entityType: 'Auth',
-          entityId: user.id,
-          details: { ip: req.ip, reason: 'Senha incorreta' }
+        userId: user.id,
+        action: 'LOGIN_FAILURE',
+        entityType: 'Auth',
+        entityId: user.id,
+        details: { ip: req.ip, reason: 'Senha incorreta' },
       });
+
       return res.status(401).json({ message: 'Email ou senha inválidos.' });
     }
-    
+
+    // 🔐 2FA
     if (user.isTwoFactorEnabled) {
+      const tempToken = jwt.sign(
+        { id: user.id },
+        JWT_SECRET,
+        { expiresIn: '5m' }
+      );
+
       return res.status(200).json({
         twoFactorRequired: true,
-        tempToken: jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '5m' })
+        tempToken,
       });
     }
 
@@ -96,11 +119,11 @@ export const loginUser = async (req: Request, res: Response) => {
     );
 
     await createAuditLog({
-        userId: user.id,
-        action: 'LOGIN_SUCCESS',
-        entityType: 'Auth',
-        entityId: user.id,
-        details: { ip: req.ip }
+      userId: user.id,
+      action: 'LOGIN_SUCCESS',
+      entityType: 'Auth',
+      entityId: user.id,
+      details: { ip: req.ip },
     });
 
     res.status(200).json({
@@ -114,102 +137,117 @@ export const loginUser = async (req: Request, res: Response) => {
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
     });
-
   } catch (error) {
-    console.error("Erro no login:", error);
-    res.status(500).json({ message: 'Ocorreu um erro interno no servidor.' });
+    console.error('Erro no login:', error);
+    res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };
 
-// Função para verificar o código 2FA durante o login
+// ===============================
+// 🔐 Verificar código 2FA
+// ===============================
 export const verifyTwoFactorToken = async (req: Request, res: Response) => {
-    // A propriedade com o código de 6 dígitos chama-se 'token' no corpo do pedido
-    const { token: twoFactorCode, tempToken } = req.body;
+  const { token: twoFactorCode, tempToken } = req.body;
 
-    if (!twoFactorCode || !tempToken) {
-        return res.status(400).json({ message: 'Token temporário e código 2FA são obrigatórios.'});
+  if (!twoFactorCode || !tempToken) {
+    return res.status(400).json({ message: 'Dados 2FA obrigatórios.' });
+  }
+
+  try {
+    const decoded: any = jwt.verify(tempToken, JWT_SECRET);
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      include: { role: true },
+    });
+
+    if (!user || !user.twoFactorSecret) {
+      return res.status(400).json({ message: '2FA não configurado.' });
     }
 
-    try {
-        const decoded: any = jwt.verify(tempToken, JWT_SECRET);
-        const userId = decoded.id;
+    const isValid = authenticator.verify({
+      token: twoFactorCode,
+      secret: user.twoFactorSecret,
+    });
 
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { role: true }
-        });
+    if (!isValid) {
+      await createAuditLog({
+        userId: user.id,
+        action: '2FA_LOGIN_FAILURE',
+        entityType: 'Auth',
+        entityId: user.id,
+        details: { ip: req.ip },
+      });
 
-        if (!user || !user.isTwoFactorEnabled || !user.twoFactorSecret) {
-            return res.status(400).json({ message: "Utilizador não encontrado ou 2FA não configurado." });
-        }
-
-        const isValid = authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
-
-        if (!isValid) {
-            await createAuditLog({
-                userId: userId,
-                action: '2FA_LOGIN_FAILURE',
-                entityType: 'Auth',
-                entityId: userId,
-                details: { ip: req.ip }
-            });
-            return res.status(401).json({ message: "Código 2FA inválido." });
-        }
-
-        const finalToken = jwt.sign(
-            { id: user.id, role: user.role.name },
-            JWT_SECRET,
-            { expiresIn: '8h' }
-        );
-        
-        await createAuditLog({
-            userId: userId,
-            action: 'LOGIN_SUCCESS_2FA',
-            entityType: 'Auth',
-            entityId: userId,
-            details: { ip: req.ip }
-        });
-        
-        res.status(200).json({
-            token: finalToken,
-            user: {
-                id: user.id,
-                nome: user.nome,
-                email: user.email,
-                role: user.role.name,
-                avatarUrl: user.avatarUrl,
-                isTwoFactorEnabled: user.isTwoFactorEnabled,
-            },
-        });
-
-    } catch (error) {
-        res.status(401).json({ message: "Token temporário inválido ou expirado." });
+      return res.status(401).json({ message: 'Código 2FA inválido.' });
     }
+
+    const finalToken = jwt.sign(
+      { id: user.id, role: user.role.name },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    await createAuditLog({
+      userId: user.id,
+      action: 'LOGIN_SUCCESS_2FA',
+      entityType: 'Auth',
+      entityId: user.id,
+      details: { ip: req.ip },
+    });
+
+    res.status(200).json({
+      token: finalToken,
+      user: {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        role: user.role.name,
+        avatarUrl: user.avatarUrl,
+        isTwoFactorEnabled: user.isTwoFactorEnabled,
+      },
+    });
+  } catch {
+    res.status(401).json({ message: 'Token temporário inválido ou expirado.' });
+  }
 };
 
-
-// Função para obter dados do utilizador autenticado
+// ===============================
+// 👤 Usuário autenticado
+// ===============================
 export const getAuthUser = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Nenhum utilizador autenticado na requisição.' });
+      return res.status(401).json({ message: 'Não autenticado.' });
     }
-    
+
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, nome: true, email: true, avatarUrl: true, isTwoFactorEnabled: true, role: { select: { name: true } } }
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        avatarUrl: true,
+        isTwoFactorEnabled: true,
+        role: { select: { name: true } },
+      },
     });
 
-    if (!user) return res.status(404).json({ message: 'Utilizador não encontrado.' });
+    if (!user) {
+      return res.status(404).json({ message: 'Utilizador não encontrado.' });
+    }
+
     res.status(200).json(user);
   } catch (error) {
-    console.error("Erro ao buscar utilizador autenticado:", error);
-    res.status(500).json({ message: 'Erro ao buscar dados do utilizador.' });
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao buscar utilizador.' });
   }
 };
 
-// Função para Listar todos os utilizadores
-export const getUsers = async (req: Request, res: Response) => {
+// ===============================
+// 👥 Listar usuários
+// ===============================
+export const getUsers = async (_req: Request, res: Response) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -217,18 +255,14 @@ export const getUsers = async (req: Request, res: Response) => {
         nome: true,
         email: true,
         avatarUrl: true,
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        role: { select: { id: true, name: true } },
       },
       orderBy: { nome: 'asc' },
     });
+
     res.status(200).json(users);
   } catch (error) {
-    console.error("Erro ao buscar utilizadores:", error);
+    console.error(error);
     res.status(500).json({ message: 'Erro ao buscar utilizadores.' });
   }
 };
