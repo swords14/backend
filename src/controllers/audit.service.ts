@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// A interface foi mantida, pois já é muito boa.
 interface AuditLogData {
   action: string;
   entityType: string;
@@ -29,6 +28,5 @@ export const createAuditLog = async (data: AuditLogData) => {
     });
   } catch (error) {
     console.error("Falha ao criar log de auditoria:", error);
-    // Em uma aplicação real, você poderia usar um logger mais robusto aqui (ex: Winston, Sentry)
   }
 };

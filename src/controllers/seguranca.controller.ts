@@ -5,8 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { authenticator } from 'otplib';
 import qrcode from 'qrcode';
-import { createAuditLog } from '../controllers/audit.service'; // CAMINHO E NOME CORRIGIDOS
-
+import { createAuditLog } from '../controllers/audit.service'; 
 const prisma = new PrismaClient();
 
 // --- 1. ALTERAÇÃO DE SENHA ---
@@ -68,7 +67,7 @@ export const generateTwoFactorSecret = async (req: Request, res: Response) => {
     }
     
     const secret = authenticator.generateSecret();
-    const otpauth = authenticator.keyuri(user.email, 'SeuAppNome', secret); // É bom nomear o serviço
+    const otpauth = authenticator.keyuri(user.email, 'SeuAppNome', secret); 
 
     await prisma.user.update({
       where: { id: userId },

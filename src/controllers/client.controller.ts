@@ -67,7 +67,7 @@ export const createClient = async (req: AuthenticatedRequest, res: Response) => 
                 preferenciasEvento, origemCliente,
                 dataAniversario: dataAniversario ? new Date(dataAniversario) : null,
                 dataFundacaoEmpresa: dataFundacaoEmpresa ? new Date(dataFundacaoEmpresa) : null,
-                // LÓGICA CORRIGIDA: Cria todos os contatos (principal e secundários)
+                // Cria todos os contatos (principal e secundários)
                 contacts: {
                     createMany: {
                         data: contacts.map((contact: any) => ({

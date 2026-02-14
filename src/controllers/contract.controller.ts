@@ -1,4 +1,3 @@
-// Caminho: backend/src/controllers/contract.controller.ts
 
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -33,7 +32,7 @@ const createEventFromContract = async (contractId: string, userId: number) => {
             eventType: budget.tipoCozinha,
             localNome: budget.localEventoNome,
             localEndereco: budget.localEventoEndereco,
-            // Mapeie outros campos do orçamento para o evento conforme necessário...
+            
         },
     });
 
@@ -85,7 +84,7 @@ export const getContractById = async (req: Request, res: Response) => {
     }
 };
 
-// ** NOVO CONTROLADOR: Cria um contrato com conteúdo personalizável **
+// Cria um contrato com conteúdo personalizável **
 export const createContract = async (req: Request, res: Response) => {
     const { budgetId, conteudo } = req.body;
     if (!budgetId || !conteudo) {

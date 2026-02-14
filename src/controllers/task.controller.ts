@@ -1,11 +1,9 @@
 // Caminho: backend/src/controllers/task.controller.ts
 
 import { Request, Response } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client'; // CORREÇÃO: Adicionada a importação de 'Prisma'
-
+import { PrismaClient, Prisma } from '@prisma/client'; 
 const prisma = new PrismaClient();
 
-// CORREÇÃO: Adicionada a interface para tipar o objeto de requisição
 interface AuthenticatedRequest extends Request {
     user?: { id: number; role: string };
 }
@@ -85,7 +83,7 @@ export const updateTask = async (req: AuthenticatedRequest, res: Response) => {
 export const getAllTasks = async (req: Request, res: Response) => {
     try {
         const { searchTerm, statusFilter } = req.query;
-        let whereClause: Prisma.TaskWhereInput = {}; // CORREÇÃO: Usa o tipo importado 'Prisma'
+        let whereClause: Prisma.TaskWhereInput = {}; 
 
         if (statusFilter && statusFilter !== 'Todos') {
             whereClause.status = statusFilter as string;

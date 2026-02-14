@@ -1,4 +1,3 @@
-// Caminho do arquivo: backend/src/controllers/budget.controller.ts
 
 import { Request, Response } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';

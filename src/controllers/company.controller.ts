@@ -1,4 +1,3 @@
-// Ficheiro: backend/src/controllers/company.controller.ts
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
@@ -25,8 +24,7 @@ export const updateCompanyData = async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
-    // 'upsert' é perfeito aqui: ele atualiza o registro com id: 1 se existir,
-    // ou cria o registro com id: 1 se não existir.
+    
     const updatedCompanyData = await prisma.company.upsert({
       where: { id: 1 },
       update: data,

@@ -1,4 +1,3 @@
-// Ficheiro: backend/src/controllers/calendar.controller.ts
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
@@ -29,8 +28,7 @@ export const getCalendarEvents = async (req: Request, res: Response) => {
     });
 
     console.log("Eventos encontrados pelo Prisma (dentro do backend):");
-    // Use JSON.stringify para ver o objeto completo no log, incluindo aninhamento
-    console.log(JSON.stringify(events, null, 2)); // <--- MUDANÇA AQUI PARA EXIBIR DETALHES COMPLETOS
+    console.log(JSON.stringify(events, null, 2)); 
     console.log("Número de eventos encontrados:", events.length);
     console.log("--- FIM getCalendarEvents NO BACKEND ---");
 

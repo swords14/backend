@@ -1,7 +1,6 @@
 // Ficheiro: backend/src/routes/event.routes.ts
 import { Router } from 'express';
-// CORREÇÃO: O caminho de importação foi ajustado para apontar para a pasta correta 'controllers'.
-// E a função 'createEventFromBudget' foi adicionada.
+
 import {
     createEvent,
     deleteEvent,
